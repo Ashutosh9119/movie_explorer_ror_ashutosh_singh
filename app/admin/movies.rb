@@ -1,0 +1,114 @@
+ActiveAdmin.register Movie do
+  permit_params :title, :description, :genre, :director, :main_lead, :rating, :duration, :release_year, :plan, :banner, :poster
+
+  # Role-based authorization
+  controller do
+    before_action :authorize_admin!, only: [:create, :update, :destroy]
+
+    def authorize_admin!
+      unless current_user&.role == "supervisor"
+        flash[:error] = "Unauthorized: Only supervisors can perform this action"
+        redirect_to admin_movies_path
+      end
+    end
+
+    def scoped_collection
+      # Allow all users to view movies, but apply additional logic if needed
+      Movie.all
+    end
+  end
+
+  # Index page
+  index do
+    selectable_column
+    id_column
+    column :title
+    column :genre
+    column :director
+    column :main_lead
+    column :rating
+    column :duration
+    column :release_year
+    column :plan
+    column :banner do |movie|
+      if movie.banner.attached?
+        image_tag movie.banner_url, size: "100x50"
+      else
+        "No Banner"
+      end
+    end
+    column :poster do |movie|
+      if movie.poster.attached?
+        image_tag movie.poster_url, size: "50x75"
+      else
+        "No Poster"
+      end
+    end
+    column :created_at
+    column :updated_at
+    actions
+  end
+
+  # Filters for searching
+  filter :title
+  filter :description
+  filter :genre
+  filter :director
+  filter :main_lead
+  filter :rating
+  filter :duration
+  filter :release_year
+  filter :plan
+  filter :created_at
+  filter :updated_at
+
+  # Form for create/edit
+  form do |f|
+    f.inputs do
+      f.input :title
+      f.input :description
+      f.input :genre
+      f.input :director
+      f.input :main_lead
+      f.input :rating
+      f.input :duration
+      f.input :release_year
+      f.input :plan
+      f.input :banner, as: :file, hint: f.object.banner.attached? ? image_tag(f.object.banner_url, size: "100x50") : nil
+      f.input :poster, as: :file, hint: f.object.poster.attached? ? image_tag(f.object.poster_url, size: "50x75") : nil
+    end
+    f.actions
+  end
+
+  # Show page
+  show do
+    attributes_table do
+      row :id
+      row :title
+      row :description
+      row :genre
+      row :director
+      row :main_lead
+      row :rating
+      row :duration
+      row :release_year
+      row :plan
+      row :banner do |movie|
+        if movie.banner.attached?
+          image_tag movie.banner_url, size: "200x100"
+        else
+          "No Banner"
+        end
+      end
+      row :poster do |movie|
+        if movie.poster.attached?
+          image_tag movie.poster_url, size: "100x150"
+        else
+          "No Poster"
+        end
+      end
+      row :created_at
+      row :updated_at
+    end
+  end
+end

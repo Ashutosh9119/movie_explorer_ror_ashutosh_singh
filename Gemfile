@@ -81,3 +81,12 @@ gem 'activeadmin'
 gem 'rack-cors'
 
 gem 'sassc'
+
+gem 'activestorage' 
+gem 'active_storage_validations', '~> 1.1' # Add for content_type validation
+gem 'cloudinary'
+
+gem 'kaminari'
+
+gem "rspec-rails"
+gem "rswag"

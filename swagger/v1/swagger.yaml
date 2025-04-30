@@ -1,0 +1,684 @@
+
+openapi: 3.0.3
+info:
+  title: Movie Explorer API
+  description: API documentation for the Movie Explorer application, covering User management and Movie management features.
+  version: 1.0.0
+  contact:
+    email: support@movieexplorer.com
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /users:
+    post:
+      summary: Register a new User
+      description: Creates a new User with the provided details.
+      tags:
+        - User APIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Ashutosh"
+                    email:
+                      type: string
+                      format: email
+                      example: "newuser@gmail.com"
+                    password:
+                      type: string
+                      example: "password123"
+                    mobile_number:
+                      type: string
+                      example: "6307341151"
+                  required:
+                    - name
+                    - email
+                    - password
+                    - mobile_number
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 4
+                  email:
+                    type: string
+                    format: email
+                    example: "newuser@gmail.com"
+                  role:
+                    type: string
+                    enum: [user, supervisor]
+                    example: "user"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiJ9..."
+        '422':
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Email has already been taken", "Mobile number is invalid"]
+
+  /users/sign_in:
+    post:
+      summary: Authenticate a user and return a JWT token
+      description: Logs in a user with email and password, returning a JWT token for subsequent requests.
+      tags:
+        - User APIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      example: "ashutosh@gmail.com"
+                    password:
+                      type: string
+                      example: "password123"
+                  required:
+                    - email
+                    - password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 3
+                  email:
+                    type: string
+                    format: email
+                    example: "ashutosh@gmail.com"
+                  role:
+                    type: string
+                    enum: [user, supervisor]
+                    example: "supervisor"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiJ9..."
+        '401':
+          description: Unauthorized (invalid email or password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
+      security: []
+
+  /users/sign_out:
+    delete:
+      summary: Sign out the current user
+      description: Logs out the current authenticated user, invalidating the JWT token.
+      tags:
+        - User APIs
+      responses:
+        '204':
+          description: Successfully signed out (No Content)
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+      security:
+        - bearerAuth: []
+
+  /api/v1/current_user:
+    get:
+      summary: Retrieve the current authenticated user
+      description: Returns the details of the currently authenticated user.
+      tags:
+        - User APIs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 3
+                  email:
+                    type: string
+                    format: email
+                    example: "ashutosh@gmail.com"
+                  role:
+                    type: string
+                    enum: [user, supervisor]
+                    example: "supervisor"
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+      security:
+        - bearerAuth: []
+
+  /api/v1/movies:
+    get:
+      summary: List all movies with pagination, filtering and search
+      description: Returns a paginated list of movies that can be filtered by various parameters
+      tags:
+        - Movie APIs
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Search term to find movies by title or description
+          example: "Marvel"
+        - name: genre
+          in: query
+          schema:
+            type: string
+          description: Filter movies by genre
+          example: "Action"
+        - name: director
+          in: query
+          schema:
+            type: string
+          description: Filter movies by director
+          example: "Christopher Nolan"
+        - name: main_lead
+          in: query
+          schema:
+            type: string
+          description: Filter movies by main actor/actress
+          example: "Tom Hanks"
+        - name: release_year
+          in: query
+          schema:
+            type: integer
+          description: Filter movies by release year
+          example: 2023
+        - name: plan
+          in: query
+          schema:
+            type: integer
+          description: Filter movies by subscription plan level
+          example: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+          example: 10
+      responses:
+        '200':
+          description: Successful response with paginated movies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MovieWithUrls'
+                  total_pages:
+                    type: integer
+                    example: 5
+                  current_page:
+                    type: integer
+                    example: 1
+                  per_page: 
+                    type: integer
+                    example: 10
+                    description: Number of items per page (as set in the request)
+                  total_count:
+                    type: integer
+                    example: 42
+      security: []
+      
+    post:
+      summary: Create a new movie
+      description: Creates a new movie with the provided details (supervisor role required)
+      tags:
+        - Movie APIs
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                movie[title]:
+                  type: string
+                  example: "Inception"
+                movie[description]:
+                  type: string
+                  example: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+                movie[genre]:
+                  type: string
+                  example: "Sci-Fi"
+                movie[director]:
+                  type: string
+                  example: "Christopher Nolan"
+                movie[main_lead]:
+                  type: string
+                  example: "Leonardo DiCaprio"
+                movie[rating]:
+                  type: number
+                  format: float
+                  example: 8.8
+                movie[duration]:
+                  type: integer
+                  example: 148
+                movie[release_year]:
+                  type: integer
+                  example: 2010
+                movie[plan]:
+                  type: integer
+                  example: 1
+                movie[banner]:
+                  type: string
+                  format: binary
+                  description: Banner image file (jpg/png)
+                movie[poster]:
+                  type: string
+                  format: binary
+                  description: Poster image file (jpg/png)
+              required:
+                - movie[title]
+                - movie[description]
+                - movie[genre]
+                - movie[director]
+                - movie[main_lead]
+                - movie[rating]
+                - movie[duration]
+                - movie[release_year]
+                - movie[plan]
+      responses:
+        '201':
+          description: Movie created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieWithUrls'
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: Forbidden (insufficient permissions)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized: Only supervisors can create movies"
+        '422':
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Title can't be blank", "Rating must be less than or equal to 10"]
+      security:
+        - bearerAuth: []
+
+  /api/v1/movies/{id}:
+    get:
+      summary: Get a specific movie by ID
+      description: Returns the details of a specific movie
+      tags:
+        - Movie APIs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the movie to retrieve
+          example: 42
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieWithUrls'
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Movie not found"
+      security: []
+      
+    put:
+      summary: Update a movie
+      description: Updates a movie with the provided details (supervisor role required)
+      tags:
+        - Movie APIs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the movie to update
+          example: 42
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                movie[title]:
+                  type: string
+                  example: "Inception (Director's Cut)"
+                movie[description]:
+                  type: string
+                  example: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+                movie[genre]:
+                  type: string
+                  example: "Sci-Fi"
+                movie[director]:
+                  type: string
+                  example: "Christopher Nolan"
+                movie[main_lead]:
+                  type: string
+                  example: "Leonardo DiCaprio"
+                movie[rating]:
+                  type: number
+                  format: float
+                  example: 8.8
+                movie[duration]:
+                  type: integer
+                  example: 148
+                movie[release_year]:
+                  type: integer
+                  example: 2010
+                movie[plan]:
+                  type: integer
+                  example: 1
+                movie[banner]:
+                  type: string
+                  format: binary
+                  description: Banner image file (jpg/png)
+                movie[poster]:
+                  type: string
+                  format: binary
+                  description: Poster image file (jpg/png)
+      responses:
+        '200':
+          description: Movie updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieWithUrls'
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: Forbidden (insufficient permissions)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized: Only supervisors can update movies"
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Movie not found"
+        '422':
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Rating must be less than or equal to 10"]
+      security:
+        - bearerAuth: []
+    
+    delete:
+      summary: Delete a movie
+      description: Deletes a specific movie (supervisor role required)
+      tags:
+        - Movie APIs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the movie to delete
+          example: 42
+      responses:
+        '204':
+          description: Movie successfully deleted (No Content)
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '403':
+          description: Forbidden (insufficient permissions)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized: Only supervisors can destroy movies"
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Movie not found"
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: "Ashutosh"
+        email:
+          type: string
+          format: email
+          example: "ashutosh@gmail.com"
+        mobile_number:
+          type: string
+          example: "6307341151"
+        role:
+          type: string
+          enum: [user, supervisor]
+          example: "supervisor"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+      required:
+        - email
+        - name
+        - mobile_number
+        
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: "Inception"
+        description:
+          type: string
+          example: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+        genre:
+          type: string
+          example: "Sci-Fi"
+        director:
+          type: string
+          example: "Christopher Nolan"
+        main_lead:
+          type: string
+          example: "Leonardo DiCaprio"
+        rating:
+          type: number
+          format: float
+          example: 8.8
+        duration:
+          type: integer
+          example: 148
+        release_year:
+          type: integer
+          example: 2010
+        plan:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+      required:
+        - title
+        - description
+        - genre
+        - director
+        - main_lead
+        - rating
+        - duration
+        - release_year
+        - plan
+        
+    MovieWithUrls:
+      allOf:
+        - $ref: '#/components/schemas/Movie'
+        - type: object
+          properties:
+            banner_url:
+              type: string
+              format: uri
+              nullable: true
+              example: "http://localhost:3000/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDUT09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--3a5a7c5ad15d5c33f96a2bb2aad62f90b4679a0e/banner.jpg"
+            poster_url:
+              type: string
+              format: uri
+              nullable: true
+              example: "http://localhost:3000/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7f3d90eaa2065fa2ae9c8a609a3f4f36a15bf716/poster.jpg"
+  
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
