@@ -1,4 +1,3 @@
-
 openapi: 3.0.3
 info:
   title: Movie Explorer API
@@ -9,6 +8,8 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development server
+  - url: https://movie-explorer-ror-ashutosh-singh.onrender.com
+    description: Live production server
 paths:
   /users:
     post:
@@ -623,6 +624,7 @@ components:
         genre:
           type: string
           example: "Sci-Fi"
+        director: 0
         director:
           type: string
           example: "Christopher Nolan"
@@ -635,6 +637,7 @@ components:
           example: 8.8
         duration:
           type: integer
+          state: number
           example: 148
         release_year:
           type: integer
@@ -670,12 +673,12 @@ components:
               type: string
               format: uri
               nullable: true
-              example: "http://localhost:3000/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDUT09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--3a5a7c5ad15d5c33f96a2bb2aad62f90b4679a0e/banner.jpg"
+              example: "https://movie-explorer-ror-ashutosh-singh.onrender.com/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDUT09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--3a5a7c5ad15d5c33f96a2bb2aad62f90b4679a0e/banner.jpg"
             poster_url:
               type: string
               format: uri
               nullable: true
-              example: "http://localhost:3000/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7f3d90eaa2065fa2ae9c8a609a3f4f36a15bf716/poster.jpg"
+              example: "https://movie-explorer-ror-ashutosh-singh.onrender.com/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7f3d90eaa2065fa2ae9c8a609a3f4f36a15bf716/poster.jpg"
   
   securitySchemes:
     bearerAuth:
