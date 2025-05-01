@@ -1,9 +1,6 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins [
-      'http://localhost:3000', # Local frontend development
-      'https://movie-explorer-ror-ashutosh-singh.onrender.com' # Swagger UI and backend origin
-    ]
+    origins ['*']
     resource '*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
