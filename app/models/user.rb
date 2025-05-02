@@ -17,6 +17,11 @@ class User < ApplicationRecord
     { 'role' => role }
   end
 
+  def on_jwt_dispatch(token,payload)
+        self.jti = payload['jti']
+        save!
+  end
+
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "email", "id", "name", "mobile_number", "role", "updated_at"]
   end

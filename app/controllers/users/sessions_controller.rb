@@ -1,3 +1,4 @@
+# app/controllers/users/sessions_controller.rb
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
   skip_before_action :verify_authenticity_token
@@ -10,11 +11,22 @@ class Users::SessionsController < Devise::SessionsController
     yield resource if block_given?
     respond_with(resource, _opts = {})
   end
-  
+
+  def destroy
+    if request.env['warden-jwt_auth.token'].present?
+      # Revoke the token explicitly (handled by JTIMatcher)
+      Warden::JWTAuth::TokenRevoker.new.call(request.env['warden-jwt_auth.token'])
+      sign_out(resource_name)
+      render json: { message: "Signed out successfully" }, status: :ok
+    else
+      render json: { error: "No token provided" }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def respond_with(resource, _opts = {})
-    if resource.persisted?
+    if resource.persisted? && request.env['warden-jwt_auth.token'].present?
       render json: {
         id: resource.id,
         email: resource.email,
