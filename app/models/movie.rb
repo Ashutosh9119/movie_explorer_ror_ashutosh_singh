@@ -1,14 +1,16 @@
-# app/models/movie.rb
 class Movie < ApplicationRecord
   has_one_attached :banner
   has_one_attached :poster
+
+  # Enums
+  enum plan: { free: 'free', premium: 'premium' }
 
   # Validations
   validates :title, :description, :genre, :director, :main_lead, presence: true
   validates :rating, presence: true, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }
   validates :duration, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :release_year, presence: true, numericality: { only_integer: true, greater_than: 1888, less_than_or_equal_to: Time.current.year }
-  validates :plan, presence: true, numericality: { only_integer: true }
+  validates :plan, presence: true
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
 
@@ -20,7 +22,7 @@ class Movie < ApplicationRecord
   scope :by_plan, ->(plan) { where(plan: plan) if plan.present? }
   scope :search_by_title, ->(query) { where("title ILIKE ?", "%#{query}%") if query.present? }
   scope :search_by_description, ->(query) { where("description ILIKE ?", "%#{query}%") if query.present? }
-  scope :paginated, ->(page, per_page) { page(page || 1).per(per_page || 10) } # Added default values
+  scope :paginated, ->(page, per_page) { page(page || 1).per(per_page || 10) }
 
   # Methods for URL access (used in JSON responses)
   def banner_url
@@ -69,15 +71,9 @@ class Movie < ApplicationRecord
   def self.api_search_filter_paginate(params = {})
     movies = search(params[:query])
     movies = movies.apply_filters(params)
-
-    # Extract pagination params with defaults
     page = (params[:page] || 1).to_i
     per_page = (params[:per_page] || 10).to_i
-
-    # Apply Kaminari pagination
     paginated_movies = movies.paginated(page, per_page)
-
-    # Return the paginated result
     paginated_movies
   end
 

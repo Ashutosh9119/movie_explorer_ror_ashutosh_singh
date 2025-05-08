@@ -9,15 +9,28 @@ class Users::SessionsController < Devise::SessionsController
     self.resource = warden.authenticate!(auth_options)
     sign_in(resource_name, resource)
     yield resource if block_given?
-    respond_with(resource, _opts = {})
+    respond_with(resource)
   end
 
   def destroy
-    if request.env['warden-jwt_auth.token'].present?
-      # Revoke the token explicitly (handled by JTIMatcher)
-      Warden::JWTAuth::TokenRevoker.new.call(request.env['warden-jwt_auth.token'])
-      sign_out(resource_name)
-      render json: { message: "Signed out successfully" }, status: :ok
+    token = request.headers['Authorization']&.split(' ')&.last
+
+    if token.present?
+      begin
+        payload = Warden::JWTAuth::TokenDecoder.new.call(token)
+        user = User.find(payload['sub'])
+
+        # Revoke the token by rotating JTI
+        user.update(jti: SecureRandom.uuid)
+
+        render json: { message: "Signed out successfully" }, status: :ok
+      rescue JWT::ExpiredSignature
+        render json: { error: "Token has expired" }, status: :unauthorized
+      rescue JWT::DecodeError
+        render json: { error: "Invalid token" }, status: :unauthorized
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "User not found" }, status: :not_found
+      end
     else
       render json: { error: "No token provided" }, status: :unprocessable_entity
     end

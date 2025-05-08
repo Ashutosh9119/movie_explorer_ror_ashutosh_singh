@@ -4,6 +4,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :validatable, :jwt_authenticatable, jwt_revocation_strategy: self
 
+  # Associations
+  has_one :subscription, dependent: :destroy
+
   enum role: { user: 0, supervisor: 1 }
 
   validates :name, presence: true, length: { maximum: 100, minimum: 3 }
@@ -17,15 +20,16 @@ class User < ApplicationRecord
     { 'role' => role }
   end
 
-  def on_jwt_dispatch(token,payload)
-        self.jti = payload['jti']
-        save!
+  def on_jwt_dispatch(token, payload)
+    self.jti = payload['jti']
+    save!
   end
 
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "email", "id", "name", "mobile_number", "role", "updated_at"]
   end
+
   def self.ransackable_associations(auth_object = nil)
-    [] 
+    ["subscription"]
   end
 end

@@ -90,3 +90,10 @@ gem 'kaminari'
 
 gem "rspec-rails"
 gem "rswag"
+gem "fcm"
+gem "stripe"
+gem "httparty"
+gem "googleauth"
+
+
+

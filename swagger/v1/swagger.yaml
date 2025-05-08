@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Movie Explorer API
-  description: API documentation for the Movie Explorer application, covering User management and Movie management features.
+  description: API documentation for the Movie Explorer application, covering User management, Movie management, and Subscription management features.
   version: 1.0.0
   contact:
     email: support@movieexplorer.com
@@ -200,10 +200,201 @@ paths:
       security:
         - bearerAuth: []
 
+  /api/v1/subscription:
+    post:
+      summary: Create a subscription for the current user
+      description: Creates a subscription for the currently authenticated user if they don't already have one.
+      tags:
+        - Subscription APIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription:
+                  type: object
+                  properties:
+                    plan_type:
+                      type: string
+                      enum: [basic, premium]
+                      example: "basic"
+                    status:
+                      type: string
+                      enum: [active, inactive]
+                      example: "active"
+                      description: Optional, defaults to "active"
+                  required:
+                    - plan_type
+      responses:
+        '201':
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You need to sign in or sign up before continuing."
+        '422':
+          description: Unprocessable Entity (validation errors or user already has a subscription)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["User already has a subscription"]
+      security:
+        - bearerAuth: []
+
+    get:
+      summary: Retrieve the current user's subscription
+      description: Returns the subscription details of the currently authenticated user.
+      tags:
+        - Subscription APIs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You need to sign in or sign up before continuing."
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Subscription not found"
+      security:
+        - bearerAuth: []
+
+    patch:
+      summary: Update the current user's subscription
+      description: Updates the subscription plan of the currently authenticated user (e.g., upgrade to premium).
+      tags:
+        - Subscription APIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription:
+                  type: object
+                  properties:
+                    plan_type:
+                      type: string
+                      enum: [basic, premium]
+                      example: "premium"
+                    status:
+                      type: string
+                      enum: [active, inactive]
+                      example: "active"
+                      description: Optional
+      responses:
+        '200':
+          description: Subscription updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You need to sign in or sign up before continuing."
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Subscription not found"
+        '422':
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Plan type is not included in the list"]
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: Delete the current user's subscription
+      description: Deletes the subscription of the currently authenticated user.
+      tags:
+        - Subscription APIs
+      responses:
+        '204':
+          description: Subscription successfully deleted (No Content)
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You need to sign in or sign up before continuing."
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Subscription not found"
+      security:
+        - bearerAuth: []
+
   /api/v1/movies:
     get:
-      summary: List all movies with pagination, filtering and search
-      description: Returns a paginated list of movies that can be filtered by various parameters
+      summary: List all movies with pagination, filtering, and search
+      description: Returns a paginated list of movies that can be filtered by various parameters. Accessible to all users (including unauthenticated users).
       tags:
         - Movie APIs
       parameters:
@@ -275,7 +466,7 @@ paths:
                   current_page:
                     type: integer
                     example: 1
-                  per_page: 
+                  per_page:
                     type: integer
                     example: 10
                     description: Number of items per page (as set in the request)
@@ -283,10 +474,10 @@ paths:
                     type: integer
                     example: 42
       security: []
-      
+
     post:
       summary: Create a new movie
-      description: Creates a new movie with the provided details (supervisor role required)
+      description: Creates a new movie with the provided details (supervisor role required).
       tags:
         - Movie APIs
       requestBody:
@@ -387,7 +578,7 @@ paths:
   /api/v1/movies/{id}:
     get:
       summary: Get a specific movie by ID
-      description: Returns the details of a specific movie
+      description: Returns the details of a specific movie. Requires login and a subscription. Basic plan can access movies with plan=1; premium plan can access all movies.
       tags:
         - Movie APIs
       parameters:
@@ -405,6 +596,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MovieWithUrls'
+        '401':
+          description: Unauthorized (not logged in)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized: Please log in to access movie details"
+        '403':
+          description: Forbidden (no subscription, inactive subscription, or insufficient plan)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      no_subscription:
+                        value: "Please create a subscription to access movie details"
+                      inactive_subscription:
+                        value: "Unauthorized: Your subscription is inactive"
+                      premium_required:
+                        value: "Unauthorized: Upgrade to premium to access this movie"
+                      invalid_plan:
+                        value: "Unauthorized: Invalid subscription plan"
         '404':
           description: Movie not found
           content:
@@ -415,11 +634,12 @@ paths:
                   error:
                     type: string
                     example: "Movie not found"
-      security: []
-      
+      security:
+        - bearerAuth: []
+
     put:
       summary: Update a movie
-      description: Updates a movie with the provided details (supervisor role required)
+      description: Updates a movie with the provided details (supervisor role required).
       tags:
         - Movie APIs
       parameters:
@@ -524,10 +744,10 @@ paths:
                     example: ["Rating must be less than or equal to 10"]
       security:
         - bearerAuth: []
-    
+
     delete:
       summary: Delete a movie
-      description: Deletes a specific movie (supervisor role required)
+      description: Deletes a specific movie (supervisor role required).
       tags:
         - Movie APIs
       parameters:
@@ -605,10 +825,47 @@ components:
           format: date-time
           example: "2025-04-30T14:47:25Z"
       required:
-        - email
+        - id
         - name
+        - email
         - mobile_number
-        
+        - role
+        - created_at
+        - updated_at
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 3
+        plan_type:
+          type: string
+          enum: [basic, premium]
+          example: "basic"
+        status:
+          type: string
+          enum: [active, inactive]
+          example: "active"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-04-30T14:47:25Z"
+      required:
+        - id
+        - user_id
+        - plan_type
+        - status
+        - created_at
+        - updated_at
+
     Movie:
       type: object
       properties:
@@ -624,7 +881,6 @@ components:
         genre:
           type: string
           example: "Sci-Fi"
-        director: 0
         director:
           type: string
           example: "Christopher Nolan"
@@ -637,7 +893,6 @@ components:
           example: 8.8
         duration:
           type: integer
-          state: number
           example: 148
         release_year:
           type: integer
@@ -654,6 +909,7 @@ components:
           format: date-time
           example: "2025-04-30T14:47:25Z"
       required:
+        - id
         - title
         - description
         - genre
@@ -663,7 +919,9 @@ components:
         - duration
         - release_year
         - plan
-        
+        - created_at
+        - updated_at
+
     MovieWithUrls:
       allOf:
         - $ref: '#/components/schemas/Movie'
@@ -679,7 +937,7 @@ components:
               format: uri
               nullable: true
               example: "https://movie-explorer-ror-ashutosh-singh.onrender.com/rails/active_storage/blobs/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7f3d90eaa2065fa2ae9c8a609a3f4f36a15bf716/poster.jpg"
-  
+
   securitySchemes:
     bearerAuth:
       type: http
