@@ -1,13 +1,24 @@
 module Api
   module V1
     class MoviesController < ApplicationController
-      skip_before_action :verify_authenticity_token # Skip CSRF token for API
-      before_action :authenticate_user!, only: [:create, :update, :destroy] # Require JWT for CRUD
-      before_action :authorize_action!, only: [:create, :update, :destroy] # Role-based authorization
-      before_action :check_subscription_access, only: [:show] # Check subscription for show action
+      skip_before_action :verify_authenticity_token
+      before_action :authenticate_user!, only: [:create, :update, :destroy]
+      before_action :authorize_action!, only: [:create, :update, :destroy]
 
       def index
         movies = Movie.api_search_filter_paginate(index_params)
+
+        # If the user is authenticated, check their subscription status
+        if current_user
+          subscription = current_user.subscription
+          unless subscription&.active?
+            movies = movies.where(is_premium: false)
+          end
+        else
+          # Unauthenticated users can only see non-premium movies
+          movies = movies.where(is_premium: false)
+        end
+
         render json: {
           movies: movies.as_json(methods: [:banner_url, :poster_url]),
           total_pages: movies.total_pages,
@@ -19,6 +30,21 @@ module Api
 
       def show
         movie = Movie.find(params[:id])
+
+        # If the movie is premium, enforce subscription check
+        if movie.is_premium
+          unless current_user
+            render json: { error: "Unauthorized: Please log in to access this movie" }, status: :unauthorized
+            return
+          end
+
+          subscription = current_user.subscription
+          unless subscription&.active?
+            render json: { error: "Please purchase an active subscription to access this movie" }, status: :forbidden
+            return
+          end
+        end
+
         render json: movie.as_json(methods: [:banner_url, :poster_url]), status: :ok
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Movie not found" }, status: :not_found
@@ -28,7 +54,6 @@ module Api
         movie = Movie.new(movie_params)
         if movie.save
           send_new_movie_notification(movie)
-          # Attach banner and poster only if files are present and not already attached
           if params[:movie][:banner].present? && !movie.banner.attached?
             movie.banner.attach(params[:movie][:banner])
           end
@@ -46,7 +71,6 @@ module Api
       def update
         movie = Movie.find(params[:id])
         if movie.update(movie_params)
-          # Attach or update banner and poster if new files are provided
           if params[:movie][:banner].present? && (!movie.banner.attached? || params[:movie][:banner].original_filename != movie.banner.filename)
             movie.banner.attach(params[:movie][:banner])
           end
@@ -74,13 +98,13 @@ module Api
       private
 
       def index_params
-        params.permit(:query, :genre, :director, :main_lead, :release_year, :plan, :page, :per_page)
+        params.permit(:query, :genre, :director, :main_lead, :release_year, :is_premium, :page, :per_page)
       end
 
       def movie_params
         params.require(:movie).permit(
           :title, :description, :genre, :director, :main_lead,
-          :rating, :duration, :release_year, :plan,
+          :rating, :duration, :release_year, :is_premium,
           :banner, :poster
         )
       end
@@ -97,46 +121,8 @@ module Api
         when :create, :update, :destroy
           current_user.role == "supervisor"
         else
-          true # Allow read actions for all users
-        end
-      end
-
-      def check_subscription_access
-        # Unauthenticated users cannot access movie details
-        unless current_user
-          render json: { error: "Unauthorized: Please log in to access movie details" }, status: :unauthorized
-          return
-        end
-
-        # Find the movie
-        movie = Movie.find(params[:id])
-
-        # Check if the user has a subscription
-        subscription = current_user.subscription
-        unless subscription
-          render json: { error: "Please create a subscription to access movie details" }, status: :forbidden
-          return
-        end
-
-        # Check if the subscription is active
-        unless subscription.status == 'active'
-          render json: { error: "Unauthorized: Your subscription is inactive" }, status: :forbidden
-          return
-        end
-
-        # Access control based on subscription plan
-        case subscription.plan_type
-        when 'basic'
-          unless movie.plan == 'free'
-            render json: { error: "Unauthorized: Upgrade to premium to access this movie" }, status: :forbidden
-          end
-        when 'premium'
           true
-        else
-          render json: { error: "Unauthorized: Invalid subscription plan" }, status: :forbidden
         end
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: "Movie not found" }, status: :not_found
       end
 
       def send_new_movie_notification(movie)

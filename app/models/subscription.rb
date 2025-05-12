@@ -1,20 +1,20 @@
 class Subscription < ApplicationRecord
-  # Associations
   belongs_to :user
 
-  # Validations
-  validates :plan_type, presence: true
-  validates :status, presence: true, inclusion: { in: %w[active inactive] }
+  PLAN_TYPES = %w[basic premium].freeze
+  STATUSES = %w[active inactive cancelled].freeze
 
-  # Enums
-  enum plan_type: { basic: 0, premium: 1 }
-  enum status: { active: 'active', inactive: 'inactive' }
+  validates :plan_type, inclusion: { in: PLAN_TYPES }
+  validates :status, inclusion: { in: STATUSES }
+
+  def basic?; plan_type == 'basic'; end
+  def premium?; plan_type == 'premium'; end
 
   def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "id", "plan_type", "status", "updated_at", "user_id"]
+    %w[id user_id plan_type status created_at updated_at stripe_customer_id stripe_subscription_id expires_at]
   end
 
   def self.ransackable_associations(auth_object = nil)
-    ["user"]
+    %w[user]
   end
 end

@@ -6,7 +6,7 @@ class User < ApplicationRecord
 
   # Associations
   has_one :subscription, dependent: :destroy
-
+  after_create :create_default_subscription
   enum role: { user: 0, supervisor: 1 }
 
   validates :name, presence: true, length: { maximum: 100, minimum: 3 }
@@ -31,5 +31,14 @@ class User < ApplicationRecord
 
   def self.ransackable_associations(auth_object = nil)
     ["subscription"]
+  end
+
+  def create_default_subscription
+    begin 
+      customer = Stripe::Customer.create(email: email)
+      Subscription.create!(user: self, plan_type: 'basic', status: 'active', stripe_customer_id: customer.id)
+    rescue Stripe::StripeError
+      Subscription.create!(user: self, plan_type: 'basic', status: 'active')
+    end
   end
 end

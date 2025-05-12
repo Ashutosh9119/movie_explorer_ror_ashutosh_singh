@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_06_050250) do
+ActiveRecord::Schema[7.1].define(version: 2025_05_12_085717) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -82,19 +82,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_06_050250) do
     t.float "rating"
     t.integer "duration"
     t.integer "release_year"
-    t.integer "plan", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_premium", default: false, null: false
   end
 
   create_table "subscriptions", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.integer "plan_type", default: 0, null: false
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "plan_type", null: false
     t.string "stripe_customer_id"
     t.string "stripe_subscription_id"
+    t.datetime "expires_at"
+    t.index ["expires_at"], name: "index_subscriptions_on_expires_at"
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -115,5 +117,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_06_050250) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "subscriptions", "users"
+  add_foreign_key "subscriptions", "users", on_delete: :cascade
 end

@@ -2,15 +2,11 @@ class Movie < ApplicationRecord
   has_one_attached :banner
   has_one_attached :poster
 
-  # Enums
-  enum plan: { free: 'free', premium: 'premium' }
-
   # Validations
   validates :title, :description, :genre, :director, :main_lead, presence: true
   validates :rating, presence: true, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }
   validates :duration, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :release_year, presence: true, numericality: { only_integer: true, greater_than: 1888, less_than_or_equal_to: Time.current.year }
-  validates :plan, presence: true
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
 
@@ -19,7 +15,7 @@ class Movie < ApplicationRecord
   scope :by_director, ->(director) { where(director: director) if director.present? }
   scope :by_main_lead, ->(main_lead) { where(main_lead: main_lead) if main_lead.present? }
   scope :by_release_year, ->(year) { where(release_year: year) if year.present? }
-  scope :by_plan, ->(plan) { where(plan: plan) if plan.present? }
+  scope :by_is_premium, ->(is_premium) { where(is_premium: is_premium) if is_premium.present? }
   scope :search_by_title, ->(query) { where("title ILIKE ?", "%#{query}%") if query.present? }
   scope :search_by_description, ->(query) { where("description ILIKE ?", "%#{query}%") if query.present? }
   scope :paginated, ->(page, per_page) { page(page || 1).per(per_page || 10) }
@@ -63,7 +59,7 @@ class Movie < ApplicationRecord
     movies = movies.by_director(params[:director])
     movies = movies.by_main_lead(params[:main_lead])
     movies = movies.by_release_year(params[:release_year])
-    movies = movies.by_plan(params[:plan])
+    movies = movies.by_is_premium(params[:is_premium])
     movies
   end
 
@@ -79,6 +75,6 @@ class Movie < ApplicationRecord
 
   # Ransackable attributes for ActiveAdmin filters
   def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "description", "director", "duration", "genre", "id", "main_lead", "plan", "rating", "release_year", "title", "updated_at"]
+    ["created_at", "description", "director", "duration", "genre", "id", "main_lead", "is_premium", "rating", "release_year", "title", "updated_at"]
   end
 end
