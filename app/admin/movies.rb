@@ -1,5 +1,5 @@
 ActiveAdmin.register Movie do
-  permit_params :title, :description, :genre, :director, :main_lead, :rating, :duration, :release_year, :plan, :banner, :poster
+  permit_params :title, :description, :genre, :director, :main_lead, :rating, :duration, :release_year, :is_premium, :banner, :poster
 
   # Role-based authorization
   controller do
@@ -29,7 +29,7 @@ ActiveAdmin.register Movie do
     column :rating
     column :duration
     column :release_year
-    column :plan
+    column :is_premium
     column :banner do |movie|
       if movie.banner.attached?
         image_tag movie.banner_url, size: "100x50"
@@ -58,7 +58,7 @@ ActiveAdmin.register Movie do
   filter :rating
   filter :duration
   filter :release_year
-  filter :plan
+  filter :is_premium
   filter :created_at
   filter :updated_at
 
@@ -73,7 +73,7 @@ ActiveAdmin.register Movie do
       f.input :rating
       f.input :duration
       f.input :release_year
-      f.input :plan
+      f.input :is_premium
       f.input :banner, as: :file, hint: f.object.banner.attached? ? image_tag(f.object.banner_url, size: "100x50") : nil
       f.input :poster, as: :file, hint: f.object.poster.attached? ? image_tag(f.object.poster_url, size: "50x75") : nil
     end
@@ -92,7 +92,7 @@ ActiveAdmin.register Movie do
       row :rating
       row :duration
       row :release_year
-      row :plan
+      row :is_premium
       row :banner do |movie|
         if movie.banner.attached?
           image_tag movie.banner_url, size: "200x100"
