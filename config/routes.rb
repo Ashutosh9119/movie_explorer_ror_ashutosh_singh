@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   devise_for :users, controllers: {
-    sessions: "users/sessions",   
+    sessions: "users/sessions",
     registrations: "users/registrations"
   }
   namespace :api do
@@ -21,4 +21,3 @@ Rails.application.routes.draw do
     end
   end
 end
-
