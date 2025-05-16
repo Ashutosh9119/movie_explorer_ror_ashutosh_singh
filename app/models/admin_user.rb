@@ -1,16 +1,15 @@
-# app/models/admin_user.rb
 class AdminUser < ApplicationRecord
-  # Include default Devise modules for ActiveAdmin
-  devise :database_authenticatable, :recoverable, :rememberable, :trackable, :validatable
+  # Devise modules (ensure :trackable is included if using current_sign_in_at etc.)
+  devise :database_authenticatable, :recoverable, :rememberable,
+         :validatable, :trackable
 
-  # Validations (optional, depending on your requirements)
-  validates :email, presence: true, uniqueness: true
-  validates :password, presence: true, length: { minimum: 6 }, if: :password_required?
+  # Required by ActiveAdmin (Ransack) to avoid 500 errors on filters
+  def self.ransackable_attributes(auth_object = nil)
+    %w[id email current_sign_in_at sign_in_count created_at]
+  end
 
-  private
-
-  # Helper method to check if password validation is required
-  def password_required?
-    !persisted? || !password.nil? || !password_confirmation.nil?
+  # Optional: if your AdminUser has any associations, whitelist them here
+  def self.ransackable_associations(auth_object = nil)
+    []
   end
 end

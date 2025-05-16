@@ -19,10 +19,20 @@ ActiveAdmin.register AdminUser do
   form do |f|
     f.inputs do
       f.input :email
-      f.input :password
-      f.input :password_confirmation
+      f.input :password, required: false
+      f.input :password_confirmation, required: false
     end
     f.actions
   end
 
+  controller do
+    def update
+      # Allow updating without password if left blank
+      if params[:admin_user][:password].blank? && params[:admin_user][:password_confirmation].blank?
+        params[:admin_user].delete(:password)
+        params[:admin_user].delete(:password_confirmation)
+      end
+      super
+    end
+  end
 end

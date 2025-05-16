@@ -41,7 +41,7 @@ class Api::V1::SubscriptionsController < ApplicationController
           user_id: current_user.id,
           plan_type: plan_type
         },
-        success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
+        success_url: "https://movie-explorer-react-js-shruti.vercel.app/success?session_id={CHECKOUT_SESSION_ID}",
         cancel_url: "http://localhost:5173/cancel"
       )
 
