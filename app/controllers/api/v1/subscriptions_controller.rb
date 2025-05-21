@@ -42,7 +42,7 @@ class Api::V1::SubscriptionsController < ApplicationController
           plan_type: plan_type
         },
         success_url: "https://movie-explorer-react-js-shruti.vercel.app/success?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url: "http://localhost:5173/cancel"
+        cancel_url: "https://movie-explorer-react-js-shruti.vercel.app/cancel"
       )
 
       Rails.logger.info "Stripe session created: #{session.id}"
