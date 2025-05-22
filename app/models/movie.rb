@@ -10,6 +10,9 @@ class Movie < ApplicationRecord
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
 
+  # Callbacks
+  after_create :send_new_movie_notification
+
   # Scopes for filtering, searching, and pagination
   scope :by_genre, ->(genre) { where("genre ILIKE ?", genre) if genre.present? }
   scope :by_director, ->(director) { where(director: director) if director.present? }
@@ -76,5 +79,15 @@ class Movie < ApplicationRecord
   # Ransackable attributes for ActiveAdmin filters
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "description", "director", "duration", "genre", "id", "main_lead", "is_premium", "rating", "release_year", "title", "updated_at"]
+  end
+
+  private
+
+  def send_new_movie_notification
+    users = User.where(notifications_enabled: true).where.not(device_token: nil)
+    return if users.empty?
+    device_tokens = users.pluck(:device_token)
+    fcm_service = FcmService.new
+    fcm_service.send_notification(device_tokens, "New Movie Added!", "#{title} has been added to the Movie Explorer collection.", { movie_id: id.to_s })
   end
 end

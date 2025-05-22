@@ -6,9 +6,10 @@ ActiveAdmin.register Movie do
     before_action :authorize_admin!, only: [:create, :update, :destroy]
 
     def authorize_admin!
-      unless current_user&.role == "supervisor"
-        flash[:error] = "Unauthorized: Only supervisors can perform this action"
+      unless current_admin_user
+        flash[:error] = "You must be logged in as an admin to perform this action"
         redirect_to admin_movies_path
+        return
       end
     end
 
