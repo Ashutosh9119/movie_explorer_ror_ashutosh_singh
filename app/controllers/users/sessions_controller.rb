@@ -42,6 +42,7 @@ class Users::SessionsController < Devise::SessionsController
     if resource.persisted? && request.env['warden-jwt_auth.token'].present?
       render json: {
         id: resource.id,
+        name: resource.name,
         email: resource.email,
         role: resource.role,
         token: request.env['warden-jwt_auth.token']
