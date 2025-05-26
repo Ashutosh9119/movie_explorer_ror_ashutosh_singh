@@ -7,6 +7,7 @@ module Api
       def current
         render json: { 
           id: current_user.id, 
+          name: resource.name,
           email: current_user.email, 
           role: current_user.role,
           profile_picture_url: current_user.profile_picture_url,
