@@ -2,27 +2,26 @@ module Api
   module V1
     class UsersController < ApplicationController
       before_action :authenticate_user!
+      # Skip CSRF protection for all actions in this API controller
       skip_before_action :verify_authenticity_token
 
       def current
         render json: { 
           id: current_user.id, 
-          name: resource.name,
           email: current_user.email, 
           role: current_user.role,
+          name: current_user.name,
           profile_picture_url: current_user.profile_picture_url,
           profile_picture_thumbnail: current_user.profile_picture_thumbnail
         }, status: :ok
       end
 
-      def update_profile_picture
-        if params[:profile_picture].present?
-          current_user.profile_picture.attach(params[:profile_picture])
+      def update
+        if user_params[:profile_picture].present?
+          current_user.profile_picture.attach(user_params[:profile_picture])
           if current_user.profile_picture.attached?
             render json: { 
-              id: current_user.id, 
-              email: current_user.email, 
-              role: current_user.role,
+              message: "Profile picture updated successfully",
               profile_picture_url: current_user.profile_picture_url,
               profile_picture_thumbnail: current_user.profile_picture_thumbnail
             }, status: :ok
@@ -64,6 +63,10 @@ module Api
 
       def device_token_params
         params.permit(:device_token)
+      end
+
+      def user_params
+        params.require(:user).permit(:profile_picture)
       end
     end
   end
