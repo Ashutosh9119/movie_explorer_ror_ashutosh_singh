@@ -6,7 +6,39 @@ module Api
       skip_before_action :verify_authenticity_token
 
       def current
-        render json: { id: current_user.id, email: current_user.email, role: current_user.role }
+        render json: { 
+          id: current_user.id, 
+          email: current_user.email, 
+          role: current_user.role,
+          profile_picture_url: current_user.profile_picture_url,
+          profile_picture_thumbnail: current_user.profile_picture_thumbnail
+        }, status: :ok
+      end
+
+      def update
+        if user_params[:profile_picture].present?
+          current_user.profile_picture.attach(user_params[:profile_picture])
+          if current_user.profile_picture.attached?
+            render json: { 
+              message: "Profile picture updated successfully",
+              profile_picture_url: current_user.profile_picture_url,
+              profile_picture_thumbnail: current_user.profile_picture_thumbnail
+            }, status: :ok
+          else
+            render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+          end
+        else
+          render json: { errors: ["No profile picture provided"] }, status: :bad_request
+        end
+      end
+
+      def remove_profile_picture
+        if current_user.profile_picture.attached?
+          current_user.profile_picture.purge
+          render json: { message: "Profile picture removed successfully" }, status: :ok
+        else
+          render json: { errors: ["No profile picture to remove"] }, status: :bad_request
+        end
       end
 
       def update_device_token
@@ -30,6 +62,10 @@ module Api
 
       def device_token_params
         params.permit(:device_token)
+      end
+
+      def user_params
+        params.require(:user).permit(:profile_picture)
       end
     end
   end

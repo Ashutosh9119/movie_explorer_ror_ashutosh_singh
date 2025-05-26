@@ -18,6 +18,8 @@ Rails.application.routes.draw do
       get 'subscriptions/status', to: 'subscriptions#status'
       post 'update_device_token', to: 'users#update_device_token'
       post 'toggle_notifications', to: 'users#toggle_notifications'
+      post 'update_profile_picture', to: 'users#update_profile_picture'
+      post 'remove_profile_picture', to: 'users#remove_profile_picture'
     end
   end
 end

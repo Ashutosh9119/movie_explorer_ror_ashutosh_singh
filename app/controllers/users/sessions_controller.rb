@@ -1,4 +1,3 @@
-# app/controllers/users/sessions_controller.rb
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
   skip_before_action :verify_authenticity_token
@@ -45,6 +44,7 @@ class Users::SessionsController < Devise::SessionsController
         name: resource.name,
         email: resource.email,
         role: resource.role,
+        subscription_status: resource.subscription&.status,
         token: request.env['warden-jwt_auth.token']
       }, status: :ok
     else

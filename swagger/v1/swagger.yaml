@@ -187,6 +187,16 @@ paths:
                     type: string
                     enum: [user, supervisor]
                     example: "supervisor"
+                  profile_picture_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                    example: "https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/profile.jpg"
+                  profile_picture_thumbnail:
+                    type: string
+                    format: uri
+                    nullable: true
+                    example: "https://res.cloudinary.com/your-cloud-name/image/upload/w_100,h_100,c_fill,g_face/v1234567890/profile.jpg"
         '401':
           description: Unauthorized (no valid token)
           content:
@@ -275,10 +285,132 @@ paths:
       security:
         - bearerAuth: []
 
+  /api/v1/update_profile_picture:
+    post:
+      summary: Update the profile picture for the current user
+      description: Uploads or replaces the profile picture for the currently authenticated user.
+      tags:
+        - User APIs
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile_picture:
+                  type: string
+                  format: binary
+                  description: Profile picture file (jpg/png)
+              required:
+                - profile_picture
+      responses:
+        '200':
+          description: Profile picture updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 3
+                  email:
+                    type: string
+                    format: email
+                    example: "ashutosh@gmail.com"
+                  role:
+                    type: string
+                    enum: [user, supervisor]
+                    example: "supervisor"
+                  profile_picture_url:
+                    type: string
+                    format: uri
+                    nullable: true
+                    example: "https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/profile.jpg"
+                  profile_picture_thumbnail:
+                    type: string
+                    format: uri
+                    nullable: true
+                    example: "https://res.cloudinary.com/your-cloud-name/image/upload/w_100,h_100,c_fill,g_face/v1234567890/profile.jpg"
+        '400':
+          description: Bad Request (no file provided)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No profile picture provided"
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '422':
+          description: Unprocessable Entity (validation errors)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Profile picture must be a PNG or JPEG"]
+      security:
+        - bearerAuth: []
+
+  /api/v1/remove_profile_picture:
+    post:
+      summary: Remove the profile picture for the current user
+      description: Removes the profile picture for the currently authenticated user.
+      tags:
+        - User APIs
+      responses:
+        '200':
+          description: Profile picture removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile picture removed successfully"
+        '400':
+          description: Bad Request (no profile picture to remove)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No profile picture to remove"
+        '401':
+          description: Unauthorized (no valid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+      security:
+        - bearerAuth: []
+
   /api/v1/movies:
     get:
       summary: List all movies with pagination, filtering, and search
-      # description: Returns a paginated list of movies that can be filtered by various parameters. Unauthenticated users or users with expired/no subscriptions can only see movies with `is_premium: false`. Users with active subscriptions can see all movies.
       tags:
         - Movie APIs
       parameters:
@@ -461,7 +593,6 @@ paths:
   /api/v1/movies/{id}:
     get:
       summary: Get a specific movie by ID
-      # description: Returns the details of a specific movie. Non-premium movies (`is_premium: false`) are accessible to all users. Premium movies (`is_premium: true`) require the user to be logged in and have an active subscription.
       tags:
         - Movie APIs
       parameters:
