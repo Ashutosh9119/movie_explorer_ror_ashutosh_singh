@@ -29,7 +29,7 @@ module Api
       def create
         movie = Movie.new(movie_params)
         movie.save
-        send_new_movie_notification(movie)
+        # send_new_movie_notification(movie)
         if params[:movie][:banner].present? && !movie.banner.attached?
           movie.banner.attach(params[:movie][:banner])
         end
@@ -90,6 +90,14 @@ module Api
         return true if subscription.expires_at.nil?
         subscription.expires_at > Time.current
       end
+
+      # def send_new_movie_notification(movie)
+      #   users = User.where(notifications_enabled: true).where.not(device_token: nil)
+      #   return if users.empty?
+      #   device_tokens = users.pluck(:device_token)
+      #   fcm_service = FcmService.new
+      #   fcm_service.send_notification(device_tokens, "New Movie Added!", "#{movie.title} has been added to the Movie Explorer collection.", { movie_id: id.to_s })
+      # end
     end
   end
 end

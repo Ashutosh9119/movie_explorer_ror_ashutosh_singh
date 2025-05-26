@@ -2,7 +2,6 @@ class Movie < ApplicationRecord
   has_one_attached :banner
   has_one_attached :poster
 
-  # Validations
   validates :title, :description, :genre, :director, :main_lead, presence: true
   validates :rating, presence: true, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }
   validates :duration, presence: true, numericality: { only_integer: true, greater_than: 0 }
@@ -10,10 +9,8 @@ class Movie < ApplicationRecord
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
 
-  # Callbacks
-  after_create :send_new_movie_notification
+  # after_create :send_new_movie_notification
 
-  # Scopes for filtering, searching, and pagination
   scope :by_genre, ->(genre) { where("genre ILIKE ?", genre) if genre.present? }
   scope :by_director, ->(director) { where(director: director) if director.present? }
   scope :by_main_lead, ->(main_lead) { where(main_lead: main_lead) if main_lead.present? }
@@ -23,7 +20,6 @@ class Movie < ApplicationRecord
   scope :search_by_description, ->(query) { where("description ILIKE ?", "%#{query}%") if query.present? }
   scope :paginated, ->(page, per_page) { page(page || 1).per(per_page || 10) }
 
-  # Methods for URL access (used in JSON responses)
   def banner_url
     banner.url if banner.attached?
   end
