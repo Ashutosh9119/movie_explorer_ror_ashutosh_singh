@@ -37,7 +37,7 @@ class User < ApplicationRecord
 
   def profile_picture_url
     if profile_picture.attached?
-      profile_picture.blob.service_url
+      profile_picture.url
     else
       nil      
     end
