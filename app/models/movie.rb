@@ -9,7 +9,7 @@ class Movie < ApplicationRecord
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
 
-  # after_create :send_new_movie_notification
+  after_create :send_new_movie_notification
 
   scope :by_genre, ->(genre) { where("genre ILIKE ?", genre) if genre.present? }
   scope :by_director, ->(director) { where(director: director) if director.present? }
