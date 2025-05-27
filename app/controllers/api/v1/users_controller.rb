@@ -22,6 +22,10 @@ module Api
           if current_user.profile_picture.attached?
             render json: { 
               message: "Profile picture updated successfully",
+              id: current_user.id, 
+              email: current_user.email, 
+              role: current_user.role,
+              name: current_user.name,
               profile_picture_url: current_user.profile_picture_url,
               profile_picture_thumbnail: current_user.profile_picture_thumbnail
             }, status: :ok
