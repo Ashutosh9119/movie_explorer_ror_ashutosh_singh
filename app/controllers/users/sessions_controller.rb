@@ -44,7 +44,6 @@ class Users::SessionsController < Devise::SessionsController
         name: resource.name,
         email: resource.email,
         role: resource.role,
-        current_user: resource.current_user,
         token: request.env['warden-jwt_auth.token']
       }, status: :ok
     else
