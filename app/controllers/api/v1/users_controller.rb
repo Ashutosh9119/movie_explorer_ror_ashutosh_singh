@@ -16,7 +16,7 @@ module Api
         }, status: :ok
       end
 
-      def update
+      def update_profile_picture
         if user_params[:profile_picture].present?
           current_user.profile_picture.attach(user_params[:profile_picture])
           if current_user.profile_picture.attached?
