@@ -6,14 +6,16 @@ module Api
       skip_before_action :verify_authenticity_token
 
       def current
+        # Rails.logger.info "Fetching current user subscription status: #{current_user.subscription_status}"
+        # Rails.logger.info "Fetching current user subscription expiry: #{subscription_expiry}"
         render json: { 
           id: current_user.id, 
-          email: current_user.email, 
-          role: current_user.role,
           name: current_user.name,
-          plan_type: current_user.plan_type,
-          subscription_status: current_user.subscription_status,
-          subscription_expiry: current_user.subscription_expiry,
+          role: current_user.role,
+          email: current_user.email, 
+          plan_type: current_user.subscription&.plan_type,
+          created_at: current_user.created_at,
+          expires_at: current_user.subscription&.expires_at,
           profile_picture_url: current_user.profile_picture_url,
           profile_picture_thumbnail: current_user.profile_picture_thumbnail
         }, status: :ok
