@@ -11,6 +11,9 @@ module Api
           email: current_user.email, 
           role: current_user.role,
           name: current_user.name,
+          plan_type: current_user.plan_type,
+          subscription_status: current_user.subscription_status,
+          subscription_expiry: current_user.subscription_expiry,
           profile_picture_url: current_user.profile_picture_url,
           profile_picture_thumbnail: current_user.profile_picture_thumbnail
         }, status: :ok
