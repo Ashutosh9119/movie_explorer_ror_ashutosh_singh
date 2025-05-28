@@ -14,7 +14,7 @@ module Api
           role: current_user.role,
           email: current_user.email, 
           plan_type: current_user.subscription&.plan_type,
-          created_at: current_user.created_at,
+          updated_at: current_user.updated_at,
           expires_at: current_user.subscription&.expires_at,
           profile_picture_url: current_user.profile_picture_url,
           profile_picture_thumbnail: current_user.profile_picture_thumbnail
