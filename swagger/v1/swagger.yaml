@@ -211,7 +211,7 @@ paths:
         - bearerAuth: []
 
   /api/v1/update_device_token:
-    post:
+    put:
       summary: Update the device token for the current user
       description: Updates the device token for the currently authenticated user to enable push notifications.
       tags:
@@ -253,14 +253,25 @@ paths:
         - bearerAuth: []
 
   /api/v1/toggle_notifications:
-    post:
-      summary: Toggle notifications for the current user
-      description: Toggles the notifications_enabled flag for the currently authenticated user.
+    put:
+      summary: Toggle or set notifications for the current user
+      description: Toggles the notifications_enabled flag for the currently authenticated user, or sets it to a specific value if the enabled parameter is provided.
       tags:
         - User APIs
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notifications_enabled:
+                  type: boolean
+                  description: Optional parameter to set notifications to a specific state (true/false). If not provided, the current state will be toggled.
+                  example: true
       responses:
         '200':
-          description: Notifications toggled successfully
+          description: Notifications updated successfully
           content:
             application/json:
               schema:
@@ -268,7 +279,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Notifications toggled successfully"
+                    example: "Notifications updated successfully"
                   notifications_enabled:
                     type: boolean
                     example: true
@@ -286,7 +297,7 @@ paths:
         - bearerAuth: []
 
   /api/v1/update_profile_picture:
-    post:
+    put:
       summary: Update the profile picture for the current user
       description: Uploads or replaces the profile picture for the currently authenticated user.
       tags:
@@ -369,7 +380,7 @@ paths:
         - bearerAuth: []
 
   /api/v1/remove_profile_picture:
-    post:
+    delete:
       summary: Remove the profile picture for the current user
       description: Removes the profile picture for the currently authenticated user.
       tags:
