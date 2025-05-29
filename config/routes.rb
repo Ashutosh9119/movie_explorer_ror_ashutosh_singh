@@ -16,10 +16,10 @@ Rails.application.routes.draw do
       get 'subscriptions/success', to: 'subscriptions#success'
       get 'subscriptions/cancel', to: 'subscriptions#cancel'
       get 'subscriptions/status', to: 'subscriptions#status'
-      post 'update_device_token', to: 'users#update_device_token'
-      post 'toggle_notifications', to: 'users#toggle_notifications'
-      post 'update_profile_picture', to: 'users#update_profile_picture'
-      post 'remove_profile_picture', to: 'users#remove_profile_picture'
+      put 'update_device_token', to: 'users#update_device_token'
+      putt 'toggle_notifications', to: 'users#toggle_notifications'
+      put 'update_profile_picture', to: 'users#update_profile_picture'
+      delete 'remove_profile_picture', to: 'users#remove_profile_picture'
     end
   end
 end
