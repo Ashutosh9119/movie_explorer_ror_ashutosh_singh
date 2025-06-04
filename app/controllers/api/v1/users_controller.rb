@@ -21,7 +21,6 @@ module Api
                          when 30, 31 
                            '1_month'
                          else
-              
                            "#{validity_duration_days}_days"
                          end
         end

@@ -4,13 +4,11 @@ class Api::V1::SubscriptionsController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def create
-    # Ensure a subscription exists for the user
     subscription = current_user.subscription || current_user.build_subscription(plan_type: 'basic', status: 'active')
     Rails.logger.info "Creating subscription for user #{current_user.id}"
     subscription.save! if subscription.new_record?
 
     begin
-      # Create a Stripe customer if none exists
       if subscription.stripe_customer_id.nil?
         Rails.logger.info "Creating Stripe customer for user #{current_user.id}"
         customer = Stripe::Customer.create(email: current_user.email)

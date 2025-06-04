@@ -44,7 +44,8 @@ class Users::SessionsController < Devise::SessionsController
         name: resource.name,
         email: resource.email,
         role: resource.role,
-        token: request.env['warden-jwt_auth.token']
+        token: request.env['warden-jwt_auth.token'],
+        plan_type: resource.subscription&.plan_type
       }, status: :ok
     else
       render json: { error: "Invalid email or password" }, status: :unauthorized

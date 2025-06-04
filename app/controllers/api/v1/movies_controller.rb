@@ -67,7 +67,7 @@ module Api
         params.require(:movie).permit(
           :title, :description, :genre, :director, :main_lead,
           :rating, :duration, :release_year, :is_premium,
-          :banner, :poster
+          :banner, :poster, :trailer
         )
       end
 
