@@ -1,7 +1,6 @@
 ActiveAdmin.register Movie do
-  permit_params :title, :description, :genre, :director, :main_lead, :rating, :duration, :release_year, :is_premium, :banner, :poster
+  permit_params :title, :description, :genre, :director, :main_lead, :rating, :duration, :release_year, :is_premium, :banner, :poster, :trailer
 
-  # Role-based authorization
   controller do
     before_action :authorize_admin!, only: [:create, :update, :destroy]
 
@@ -14,12 +13,10 @@ ActiveAdmin.register Movie do
     end
 
     def scoped_collection
-      # Allow all users to view movies, but apply additional logic if needed
       Movie.all
     end
   end
 
-  # Index page
   index do
     selectable_column
     id_column
@@ -45,12 +42,18 @@ ActiveAdmin.register Movie do
         "No Poster"
       end
     end
+    column :trailer do |movie|
+      if movie.trailer.present?
+        link_to "View Trailer", movie.trailer, target: "_blank", rel: "noopener noreferrer"
+      else
+        "No Trailer"
+      end
+    end
     column :created_at
     column :updated_at
     actions
   end
 
-  # Filters for searching
   filter :title
   filter :description
   filter :genre
@@ -60,10 +63,10 @@ ActiveAdmin.register Movie do
   filter :duration
   filter :release_year
   filter :is_premium
+  filter :trailer
   filter :created_at
   filter :updated_at
 
-  # Form for create/edit
   form do |f|
     f.inputs do
       f.input :title
@@ -77,11 +80,11 @@ ActiveAdmin.register Movie do
       f.input :is_premium
       f.input :banner, as: :file, hint: f.object.banner.attached? ? image_tag(f.object.banner_url, size: "100x50") : nil
       f.input :poster, as: :file, hint: f.object.poster.attached? ? image_tag(f.object.poster_url, size: "50x75") : nil
+      f.input :trailer, hint: "Enter a valid YouTube URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
     end
     f.actions
   end
 
-  # Show page
   show do
     attributes_table do
       row :id
@@ -106,6 +109,13 @@ ActiveAdmin.register Movie do
           image_tag movie.poster_url, size: "100x150"
         else
           "No Poster"
+        end
+      end
+      row :trailer do |movie|
+        if movie.trailer.present?
+          link_to movie.trailer, movie.trailer, target: "_blank", rel: "noopener noreferrer"
+        else
+          "No Trailer"
         end
       end
       row :created_at
