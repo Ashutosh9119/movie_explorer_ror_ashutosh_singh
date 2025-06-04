@@ -44,7 +44,7 @@ ActiveAdmin.register Movie do
     end
     column :trailer do |movie|
       if movie.trailer.present?
-        link_to "View Trailer", movie.trailer, target: "_blank", rel: "noopener noreferrer"
+        link_to movie.trailer, movie.trailer, target: "_blank", rel: "noopener noreferrer"
       else
         "No Trailer"
       end
@@ -80,7 +80,7 @@ ActiveAdmin.register Movie do
       f.input :is_premium
       f.input :banner, as: :file, hint: f.object.banner.attached? ? image_tag(f.object.banner_url, size: "100x50") : nil
       f.input :poster, as: :file, hint: f.object.poster.attached? ? image_tag(f.object.poster_url, size: "50x75") : nil
-      f.input :trailer, hint: "Enter a valid YouTube URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
+      f.input :trailer
     end
     f.actions
   end

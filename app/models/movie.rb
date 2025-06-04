@@ -8,6 +8,7 @@ class Movie < ApplicationRecord
   validates :release_year, presence: true, numericality: { only_integer: true, greater_than: 1888, less_than_or_equal_to: Time.current.year }
   validates :banner, content_type: ['image/png', 'image/jpeg'], allow_blank: true
   validates :poster, content_type: ['image/png', 'image/jpeg'], allow_blank: true
+  validates :trailer, format: { with: /\A(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=)?[\w\-]{11}\z/i, allow_blank: true, message: "must be a valid YouTube URL" }
 
   after_create :send_new_movie_notification
 
@@ -28,7 +29,6 @@ class Movie < ApplicationRecord
     poster.url if poster.attached?
   end
 
-  # Role-based authorization methods
   def self.can_create?(current_user)
     current_user&.role == "supervisor"
   end
@@ -45,13 +45,11 @@ class Movie < ApplicationRecord
     true
   end
 
-  # Custom search method combining title and description
   def self.search(query)
     return all unless query.present?
     search_by_title(query).or(search_by_description(query))
   end
 
-  # Custom filter method combining all filters
   def self.apply_filters(params = {})
     movies = all
     movies = movies.by_genre(params[:genre])
@@ -62,7 +60,6 @@ class Movie < ApplicationRecord
     movies
   end
 
-  # Combined method for API use: search, filter, and paginate
   def self.api_search_filter_paginate(params = {})
     movies = search(params[:query])
     movies = movies.apply_filters(params)
@@ -72,9 +69,12 @@ class Movie < ApplicationRecord
     paginated_movies
   end
 
-  # Ransackable attributes for ActiveAdmin filters
   def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "description", "director", "duration", "genre", "id", "main_lead", "is_premium", "rating", "release_year", "title", "updated_at"]
+    ["created_at", "description", "director", "duration", "genre", "id", "main_lead", "is_premium", "rating", "release_year", "title", "updated_at", "trailer"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    []
   end
 
   private
